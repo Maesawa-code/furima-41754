@@ -1,5 +1,7 @@
 class PurchaseRecordController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_item, only: [:index, :create]
+  before_action :move_to_root_path, only: [:index]
 
   def index
     gon.public_key = ENV['PAYJP_PUBLIC_KEY']
@@ -15,6 +17,7 @@ class PurchaseRecordController < ApplicationController
     else
       gon.public_key = ENV['PAYJP_PUBLIC_KEY']
       render :index, status: :unprocessable_entity
+
     end
   end
 
@@ -37,5 +40,11 @@ class PurchaseRecordController < ApplicationController
       card: purchase_params[:token],
       currency: 'jpy'
     )
+  end
+
+  def move_to_root_path
+    return unless @item.purchase_record.present? || current_user.id == @item.user_id
+
+    redirect_to root_path
   end
 end
